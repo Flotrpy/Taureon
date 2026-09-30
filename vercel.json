@@ -1,0 +1,7 @@
+{
+  "buildCommand": "mkdir -p public/static && cp templates/index.html public/index.html && cp static/* public/static/",
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://RENDER_BACKEND_URL/api/:path*" }
+  ]
+}
