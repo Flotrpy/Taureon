@@ -626,6 +626,7 @@
     async function dlCard(idx) {
       const c = cardData[idx];
       c.status = 'downloading';
+      c.progress = null;
       c.error = null;
       renderCard(idx);
 
@@ -662,6 +663,11 @@
         try {
           const res = await fetch(`/api/status/${c.jobId}`);
           const data = await res.json();
+          if (data.status === 'downloading' && typeof data.progress === 'number'
+              && data.progress !== c.progress) {
+            c.progress = data.progress;
+            renderCard(idx);
+          }
           if (data.status === 'done') {
             clearInterval(iv);
             c.status = 'done';
