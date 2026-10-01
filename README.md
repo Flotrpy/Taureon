@@ -51,6 +51,7 @@ Then open **http://localhost:8899**.
 3. Click **Fetch** to load the thumbnails and info.
 4. Pick a quality if you want to.
 5. Click **Download** on one video, or **Download All**.
+6. Watch the progress bar on each card. The file saves automatically when it reaches 100%.
 
 ## Settings
 
