@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest import mock
 
-from app import get_cookies_file, ytdlp_cmd
+from app import build_download_cmd, get_cookies_file, ytdlp_cmd
 
 
 class CookiesTests(unittest.TestCase):
@@ -24,6 +24,11 @@ class CookiesTests(unittest.TestCase):
                 self.assertEqual(fh.read(), env["YTDLP_COOKIES_CONTENT"])
             self.assertEqual(get_cookies_file(), path)  # reused, not rewritten
         os.remove(path)
+
+    def test_download_command_uses_cookies(self):
+        with mock.patch.dict(os.environ, {"YTDLP_COOKIES": "/tmp/c.txt"}, clear=True):
+            cmd = build_download_cmd("o.%(ext)s", "https://x/v", "video", None)
+        self.assertEqual(cmd[:3], ["yt-dlp", "--cookies", "/tmp/c.txt"])
 
 
 if __name__ == "__main__":

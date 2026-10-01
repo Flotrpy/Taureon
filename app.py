@@ -66,7 +66,7 @@ def parse_ytdlp_json(stdout):
 
 def build_download_cmd(out_template, url, format_choice, format_id):
     """Build the yt-dlp command line for a download job."""
-    cmd = ["yt-dlp", "--no-playlist", "-o", out_template]
+    cmd = ytdlp_cmd("--no-playlist", "-o", out_template)
 
     if format_choice == "audio":
         cmd += ["-x", "--audio-format", "mp3"]
@@ -146,7 +146,7 @@ def get_info():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
-    cmd = ["yt-dlp", "--no-playlist", "-j", url]
+    cmd = ytdlp_cmd("--no-playlist", "-j", url)
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         if result.returncode != 0:
@@ -192,7 +192,7 @@ def get_playlist_info():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
-    cmd = ["yt-dlp", "--flat-playlist", "-J", url]
+    cmd = ytdlp_cmd("--flat-playlist", "-J", url)
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         if result.returncode != 0:
