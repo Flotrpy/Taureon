@@ -64,6 +64,15 @@ def parse_ytdlp_json(stdout):
     raise ValueError("yt-dlp returned no data")
 
 
+PROGRESS_RE = re.compile(r"\[download\]\s+(\d+(?:\.\d+)?)%")
+
+
+def parse_progress(line):
+    """Return the percent from a yt-dlp "[download]  45.3% of ..." line, or None."""
+    m = PROGRESS_RE.search(line)
+    return float(m.group(1)) if m else None
+
+
 def build_download_cmd(out_template, url, format_choice, format_id):
     """Build the yt-dlp command line for a download job."""
     cmd = ytdlp_cmd("--no-playlist", "-o", out_template)
