@@ -13,3 +13,7 @@ Dockerfile
 .env.*
 .vscode
 .idea
+cookies.txt
+*.cookies
+.github
+tests
