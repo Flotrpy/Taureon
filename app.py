@@ -29,10 +29,8 @@ def parse_ytdlp_json(stdout):
     raise ValueError("yt-dlp returned no data")
 
 
-def run_download(job_id, url, format_choice, format_id):
-    job = jobs[job_id]
-    out_template = os.path.join(DOWNLOAD_DIR, f"{job_id}.%(ext)s")
-
+def build_download_cmd(out_template, url, format_choice, format_id):
+    """Build the yt-dlp command line for a download job."""
     cmd = ["yt-dlp", "--no-playlist", "-o", out_template]
 
     if format_choice == "audio":
@@ -43,6 +41,13 @@ def run_download(job_id, url, format_choice, format_id):
         cmd += ["-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4"]
 
     cmd.append(url)
+    return cmd
+
+
+def run_download(job_id, url, format_choice, format_id):
+    job = jobs[job_id]
+    out_template = os.path.join(DOWNLOAD_DIR, f"{job_id}.%(ext)s")
+    cmd = build_download_cmd(out_template, url, format_choice, format_id)
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
