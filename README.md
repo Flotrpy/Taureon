@@ -97,6 +97,17 @@ The page lives on **Vercel** and the downloader runs on **Render**. Both have fr
 - **YouTube and some other sites may block downloads** that come from cloud servers like Render. If that happens, run RedoClip on your own computer instead.
 - **Downloaded files are temporary** on the free plan and disappear when the service restarts.
 
+## For developers
+
+Run the tests (they don't need yt-dlp or internet):
+
+```bash
+pip install flask
+python -m unittest discover -s . -p "test_*.py" -t .
+```
+
+The server also has a `/health` endpoint that returns `{"status": "ok"}`, handy for uptime checks on Render or Docker.
+
 ## Supported sites
 
 Anything [yt-dlp supports](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md), including TikTok, Instagram, Twitter/X, Reddit, Facebook, Vimeo, Twitch, Dailymotion, SoundCloud, Loom, Streamable, Pinterest, Tumblr, Threads, LinkedIn and many more.
