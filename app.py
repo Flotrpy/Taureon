@@ -3,6 +3,8 @@ import uuid
 import glob
 import json
 import subprocess
+import re
+import tempfile
 import threading
 from flask import Flask, request, jsonify, send_file, render_template
 
@@ -11,6 +13,39 @@ DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 jobs = {}
+
+
+_cookies_from_content = {}
+
+
+def get_cookies_file():
+    """Return a cookies.txt path for yt-dlp, or None.
+
+    YTDLP_COOKIES is a path to an existing Netscape-format cookies file.
+    YTDLP_COOKIES_CONTENT is the file's text (handy for hosts that only
+    support environment variables); it is written once to a private temp file.
+    """
+    path = os.environ.get("YTDLP_COOKIES")
+    if path:
+        return path
+    content = os.environ.get("YTDLP_COOKIES_CONTENT")
+    if not content:
+        return None
+    if content not in _cookies_from_content:
+        fd, tmp = tempfile.mkstemp(prefix="cookies-", suffix=".txt")
+        with os.fdopen(fd, "w") as fh:
+            fh.write(content)
+        _cookies_from_content[content] = tmp
+    return _cookies_from_content[content]
+
+
+def ytdlp_cmd(*args):
+    """Start a yt-dlp command line, adding cookies when configured."""
+    cmd = ["yt-dlp"]
+    cookies = get_cookies_file()
+    if cookies:
+        cmd += ["--cookies", cookies]
+    return cmd + list(args)
 
 
 def parse_ytdlp_json(stdout):
