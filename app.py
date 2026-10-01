@@ -75,7 +75,7 @@ def parse_progress(line):
 
 def build_download_cmd(out_template, url, format_choice, format_id):
     """Build the yt-dlp command line for a download job."""
-    cmd = ytdlp_cmd("--no-playlist", "-o", out_template)
+    cmd = ytdlp_cmd("--newline", "--no-playlist", "-o", out_template)
 
     if format_choice == "audio":
         cmd += ["-x", "--audio-format", "mp3"]
@@ -94,10 +94,36 @@ def run_download(job_id, url, format_choice, format_id):
     cmd = build_download_cmd(out_template, url, format_choice, format_id)
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        if result.returncode != 0:
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        timed_out = []
+
+        def on_timeout():
+            timed_out.append(True)
+            proc.kill()
+
+        timer = threading.Timer(300, on_timeout)
+        timer.start()
+        last_line = ""
+        try:
+            for line in proc.stdout:
+                line = line.strip()
+                if not line:
+                    continue
+                last_line = line
+                pct = parse_progress(line)
+                if pct is not None:
+                    job["progress"] = pct
+            proc.wait()
+        finally:
+            timer.cancel()
+
+        if timed_out:
+            raise subprocess.TimeoutExpired(cmd, 300)
+        if proc.returncode != 0:
             job["status"] = "error"
-            job["error"] = result.stderr.strip().split("\n")[-1]
+            job["error"] = last_line or "yt-dlp failed"
             return
 
         files = glob.glob(os.path.join(DOWNLOAD_DIR, f"{job_id}.*"))
