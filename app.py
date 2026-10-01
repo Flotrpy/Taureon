@@ -99,6 +99,11 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/api/info", methods=["POST"])
 def get_info():
     data = request.json
