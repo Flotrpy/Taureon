@@ -51,6 +51,7 @@ Then open **http://localhost:8899**.
 3. Click **Fetch** to load the thumbnails and info.
 4. Pick a quality if you want to.
 5. Click **Download** on one video, or **Download All**.
+6. Watch the progress bar on each card. The file saves automatically when it reaches 100%.
 
 ## Settings
 
@@ -61,6 +62,13 @@ You change these with environment variables:
 | `PORT` | `8899` | The port the server uses. |
 | `HOST` | `127.0.0.1` | Who can reach it. Use `0.0.0.0` so other devices on your network can open it. |
 | `RECLIP_NO_UPDATE` | not set | Set to `1` to skip the yt-dlp update at startup. |
+
+`YTDLP_COOKIES` and `YTDLP_COOKIES_CONTENT` are optional and only needed for sites that ask you to be logged in (YouTube often does when RedoClip runs on a cloud server):
+
+- `YTDLP_COOKIES`: path to a Netscape-format `cookies.txt` file.
+- `YTDLP_COOKIES_CONTENT`: the text of that file, for hosts like Render that only take environment variables.
+
+Export cookies with a browser extension such as "Get cookies.txt LOCALLY". **Use a throwaway account, not your main one**, because sites can flag accounts that download this way. Never commit `cookies.txt` (it is already in `.gitignore`).
 
 Example, so a phone or another computer on your Wi-Fi can use it:
 

@@ -267,6 +267,8 @@
       color: var(--muted);
     }
     .card-status.downloading { color: var(--accent); }
+    .progress { height: 4px; margin-top: 6px; border-radius: 2px; background: rgba(0,0,0,0.08); overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--accent); transition: width 0.4s ease; }
     .card-status.done { color: var(--success); }
     .card-status.error { color: var(--error); }
 
@@ -584,7 +586,9 @@
       if (c.status === 'ready') {
         actionHtml = `<button class="card-dl-btn" onclick="dlCard(${idx})">Download</button>${qualityChips}`;
       } else if (c.status === 'downloading') {
-        actionHtml = `<span class="card-status downloading"><span class="spin"></span> Downloading...</span>`;
+        const pct = typeof c.progress === 'number' ? Math.round(c.progress) : null;
+        actionHtml = `<span class="card-status downloading"><span class="spin"></span> ${pct === null ? 'Downloading...' : `Downloading ${pct}%`}</span>`
+          + (pct === null ? '' : `<div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div>`);
       } else if (c.status === 'done') {
         actionHtml = `<button class="card-dl-btn done" onclick="saveCard(${idx})">Save</button>
           <span class="card-status done">${esc(c.filename || '')}</span>`;
@@ -622,6 +626,7 @@
     async function dlCard(idx) {
       const c = cardData[idx];
       c.status = 'downloading';
+      c.progress = null;
       c.error = null;
       renderCard(idx);
 
@@ -658,6 +663,11 @@
         try {
           const res = await fetch(`/api/status/${c.jobId}`);
           const data = await res.json();
+          if (data.status === 'downloading' && typeof data.progress === 'number'
+              && data.progress !== c.progress) {
+            c.progress = data.progress;
+            renderCard(idx);
+          }
           if (data.status === 'done') {
             clearInterval(iv);
             c.status = 'done';

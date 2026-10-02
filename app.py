@@ -3,6 +3,8 @@ import uuid
 import glob
 import json
 import subprocess
+import re
+import tempfile
 import threading
 from flask import Flask, request, jsonify, send_file, render_template
 
@@ -11,6 +13,39 @@ DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 jobs = {}
+
+
+_cookies_from_content = {}
+
+
+def get_cookies_file():
+    """Return a cookies.txt path for yt-dlp, or None.
+
+    YTDLP_COOKIES is a path to an existing Netscape-format cookies file.
+    YTDLP_COOKIES_CONTENT is the file's text (handy for hosts that only
+    support environment variables); it is written once to a private temp file.
+    """
+    path = os.environ.get("YTDLP_COOKIES")
+    if path:
+        return path
+    content = os.environ.get("YTDLP_COOKIES_CONTENT")
+    if not content:
+        return None
+    if content not in _cookies_from_content:
+        fd, tmp = tempfile.mkstemp(prefix="cookies-", suffix=".txt")
+        with os.fdopen(fd, "w") as fh:
+            fh.write(content)
+        _cookies_from_content[content] = tmp
+    return _cookies_from_content[content]
+
+
+def ytdlp_cmd(*args):
+    """Start a yt-dlp command line, adding cookies when configured."""
+    cmd = ["yt-dlp"]
+    cookies = get_cookies_file()
+    if cookies:
+        cmd += ["--cookies", cookies]
+    return cmd + list(args)
 
 
 def parse_ytdlp_json(stdout):
@@ -29,9 +64,18 @@ def parse_ytdlp_json(stdout):
     raise ValueError("yt-dlp returned no data")
 
 
+PROGRESS_RE = re.compile(r"\[download\]\s+(\d+(?:\.\d+)?)%")
+
+
+def parse_progress(line):
+    """Return the percent from a yt-dlp "[download]  45.3% of ..." line, or None."""
+    m = PROGRESS_RE.search(line)
+    return float(m.group(1)) if m else None
+
+
 def build_download_cmd(out_template, url, format_choice, format_id):
     """Build the yt-dlp command line for a download job."""
-    cmd = ["yt-dlp", "--no-playlist", "-o", out_template]
+    cmd = ytdlp_cmd("--newline", "--no-playlist", "-o", out_template)
 
     if format_choice == "audio":
         cmd += ["-x", "--audio-format", "mp3"]
@@ -50,10 +94,36 @@ def run_download(job_id, url, format_choice, format_id):
     cmd = build_download_cmd(out_template, url, format_choice, format_id)
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        if result.returncode != 0:
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        timed_out = []
+
+        def on_timeout():
+            timed_out.append(True)
+            proc.kill()
+
+        timer = threading.Timer(300, on_timeout)
+        timer.start()
+        last_line = ""
+        try:
+            for line in proc.stdout:
+                line = line.strip()
+                if not line:
+                    continue
+                last_line = line
+                pct = parse_progress(line)
+                if pct is not None:
+                    job["progress"] = pct
+            proc.wait()
+        finally:
+            timer.cancel()
+
+        if timed_out:
+            raise subprocess.TimeoutExpired(cmd, 300)
+        if proc.returncode != 0:
             job["status"] = "error"
-            job["error"] = result.stderr.strip().split("\n")[-1]
+            job["error"] = last_line or "yt-dlp failed"
             return
 
         files = glob.glob(os.path.join(DOWNLOAD_DIR, f"{job_id}.*"))
@@ -111,7 +181,7 @@ def get_info():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
-    cmd = ["yt-dlp", "--no-playlist", "-j", url]
+    cmd = ytdlp_cmd("--no-playlist", "-j", url)
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         if result.returncode != 0:
@@ -157,7 +227,7 @@ def get_playlist_info():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
-    cmd = ["yt-dlp", "--flat-playlist", "-J", url]
+    cmd = ytdlp_cmd("--flat-playlist", "-J", url)
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         if result.returncode != 0:
@@ -203,6 +273,7 @@ def check_status(job_id):
         "status": job["status"],
         "error": job.get("error"),
         "filename": job.get("filename"),
+        "progress": job.get("progress"),
     })
 
 
