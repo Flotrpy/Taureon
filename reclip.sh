@@ -51,6 +51,6 @@ PORT="${PORT:-8899}"
 export PORT
 
 echo ""
-echo "  RedoClip is running at http://localhost:$PORT"
+echo "  Taureon is running at http://localhost:$PORT"
 echo ""
 python3 app.py

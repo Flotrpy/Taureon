@@ -1,13 +1,13 @@
 services:
-  redoclip:
+  taureon:
     build: .
-    image: redoclip:latest
-    container_name: redoclip
+    image: taureon:latest
+    container_name: taureon
     ports:
       - "8899:8899"
     volumes:
-      - redoclip-downloads:/app/downloads
+      - taureon-downloads:/app/downloads
     restart: unless-stopped
 
 volumes:
-  redoclip-downloads:
+  taureon-downloads:

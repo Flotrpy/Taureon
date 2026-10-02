@@ -1,13 +1,13 @@
-# RedoClip
+# Taureon
 
 A self-hosted, open-source video and audio downloader with a clean web UI. Paste links from sites like TikTok, Instagram, Twitter/X, Reddit and 1000+ others, then download them as MP4 (video) or MP3 (audio).
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-![RedoClip MP3 mode](assets/preview-mp3.png)
+![Taureon MP3 mode](assets/preview-mp3.png)
 
-> RedoClip is a fork of [ReClip](https://github.com/averygan/reclip) by Avery Gan. See [Credits](#credits).
+> Taureon is a fork of [ReClip](https://github.com/averygan/reclip) by Avery Gan. See [Credits](#credits).
 
 ## What it does
 
@@ -27,8 +27,8 @@ You need **Python 3**, **yt-dlp** and **ffmpeg** installed.
    - Windows: install Python, then `pip install yt-dlp`, and install [ffmpeg](https://ffmpeg.org/download.html)
 2. Get the code:
    ```bash
-   git clone https://github.com/Flotrpy/redoclip.git
-   cd redoclip
+   git clone https://github.com/Flotrpy/Taureon.git
+   cd Taureon
    ```
 3. Start it:
    ```bash
@@ -39,7 +39,7 @@ You need **Python 3**, **yt-dlp** and **ffmpeg** installed.
 ### Run it with Docker instead
 
 ```bash
-docker build -t redoclip . && docker run -p 8899:8899 redoclip
+docker build -t taureon . && docker run -p 8899:8899 taureon
 ```
 
 Then open **http://localhost:8899**.
@@ -63,7 +63,7 @@ You change these with environment variables:
 | `HOST` | `127.0.0.1` | Who can reach it. Use `0.0.0.0` so other devices on your network can open it. |
 | `RECLIP_NO_UPDATE` | not set | Set to `1` to skip the yt-dlp update at startup. |
 
-`YTDLP_COOKIES` and `YTDLP_COOKIES_CONTENT` are optional and only needed for sites that ask you to be logged in (YouTube often does when RedoClip runs on a cloud server):
+`YTDLP_COOKIES` and `YTDLP_COOKIES_CONTENT` are optional and only needed for sites that ask you to be logged in (YouTube often does when Taureon runs on a cloud server):
 
 - `YTDLP_COOKIES`: path to a Netscape-format `cookies.txt` file.
 - `YTDLP_COOKIES_CONTENT`: the text of that file, for hosts like Render that only take environment variables.
@@ -102,7 +102,7 @@ The page lives on **Vercel** and the downloader runs on **Render**. Both have fr
 ### Good to know
 
 - **The free Render plan sleeps** after about 15 minutes of no use. The first request afterwards can take around a minute.
-- **YouTube and some other sites may block downloads** that come from cloud servers like Render. If that happens, run RedoClip on your own computer instead.
+- **YouTube and some other sites may block downloads** that come from cloud servers like Render. If that happens, run Taureon on your own computer instead.
 - **Downloaded files are temporary** on the free plan and disappear when the service restarts.
 
 ## For developers
@@ -128,7 +128,7 @@ Anything [yt-dlp supports](https://github.com/yt-dlp/yt-dlp/blob/master/supporte
 
 ## Credits
 
-RedoClip is built on top of **[ReClip](https://github.com/averygan/reclip)**, created by **Avery Gan** ([@averygan](https://github.com/averygan)). Thank you for making it open source.
+Taureon is built on top of **[ReClip](https://github.com/averygan/reclip)**, created by **Avery Gan** ([@averygan](https://github.com/averygan)). Thank you for making it open source.
 
 Thanks also to the ReClip contributors, [@jouls0217](https://github.com/jouls0217) and [@AmanoSpica](https://github.com/AmanoSpica), and to the [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [ffmpeg](https://ffmpeg.org/) teams whose tools do the real work.
 
