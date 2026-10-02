@@ -1,13 +1,13 @@
 services:
-  reclip:
+  redoclip:
     build: .
-    image: reclip:latest
-    container_name: reclip
+    image: redoclip:latest
+    container_name: redoclip
     ports:
       - "8899:8899"
     volumes:
-      - reclip-downloads:/app/downloads
+      - redoclip-downloads:/app/downloads
     restart: unless-stopped
 
 volumes:
-  reclip-downloads:
+  redoclip-downloads:
