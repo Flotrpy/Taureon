@@ -15,28 +15,38 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 jobs = {}
 
 
-_cookies_from_content = {}
+_cookies_tmp_path = None
 
 
 def get_cookies_file():
-    """Return a cookies.txt path for yt-dlp, or None.
+    """Return a writable cookies.txt path for yt-dlp, or None.
 
     YTDLP_COOKIES is a path to an existing Netscape-format cookies file.
     YTDLP_COOKIES_CONTENT is the file's text (handy for hosts that only
-    support environment variables); it is written once to a private temp file.
+    support environment variables).
+
+    yt-dlp rewrites the cookies file after each run (to persist refreshed
+    session cookies), so either source is copied once into a private,
+    writable temp file on first use — hosts like Render mount secret files
+    read-only, and using that path directly would fail on first request.
     """
+    global _cookies_tmp_path
+    if _cookies_tmp_path:
+        return _cookies_tmp_path
+
     path = os.environ.get("YTDLP_COOKIES")
-    if path:
-        return path
     content = os.environ.get("YTDLP_COOKIES_CONTENT")
+    if path:
+        with open(path, "r") as fh:
+            content = fh.read()
     if not content:
         return None
-    if content not in _cookies_from_content:
-        fd, tmp = tempfile.mkstemp(prefix="cookies-", suffix=".txt")
-        with os.fdopen(fd, "w") as fh:
-            fh.write(content)
-        _cookies_from_content[content] = tmp
-    return _cookies_from_content[content]
+
+    fd, tmp = tempfile.mkstemp(prefix="cookies-", suffix=".txt")
+    with os.fdopen(fd, "w") as fh:
+        fh.write(content)
+    _cookies_tmp_path = tmp
+    return _cookies_tmp_path
 
 
 def ytdlp_cmd(*args):
