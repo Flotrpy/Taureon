@@ -4,8 +4,11 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends ffmpeg curl unzip && \
+    rm -rf /var/lib/apt/lists/* && \
+    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh
+# YouTube now requires solving a JS signature challenge; yt-dlp runs it
+# through an external JS runtime (Deno here), installed above.
 
 WORKDIR /app
 
